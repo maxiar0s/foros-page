@@ -1,0 +1,15 @@
+# Local credentials
+.env
+.env.*
+!.env.example
+
+# Java / Maven outputs
+**/target/
+
+# Editor and OS files
+.idea/
+.vscode/
+.DS_Store
+.atl/
+odd/
+Thumbs.db

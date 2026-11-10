@@ -1,0 +1,76 @@
+{
+  "info": {
+    "name": "Foro API - users + forum",
+    "description": "Validación secuencial de login, roles, CRUD de usuarios/categorías y lectura/publicación del foro. Requiere servicios levantados con Compose.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUsers", "value": "http://localhost:8081" },
+    { "key": "baseForum", "value": "http://localhost:8082" },
+    { "key": "adminToken", "value": "" },
+    { "key": "userToken", "value": "" },
+    { "key": "topicId", "value": "1" }
+  ],
+  "item": [
+    {
+      "name": "1. Login admin y validar identidad",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Login admin 200', () => pm.response.to.have.status(200));", "const body = pm.response.json();", "pm.expect(body.tokenType).to.eql('Bearer');", "pm.collectionVariables.set('adminToken', body.token);"] } }],
+      "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"DemoPass123!\"\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUsers}}/api/auth/login" }
+    },
+    {
+      "name": "2. Identidad admin",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Identidad admin 200', () => pm.response.to.have.status(200));", "pm.expect(pm.response.json().role).to.eql('ADMIN');"] } }],
+      "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }], "url": "{{baseUsers}}/api/auth/me" }
+    },
+    {
+      "name": "3. Login member",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Login member 200', () => pm.response.to.have.status(200));", "pm.collectionVariables.set('userToken', pm.response.json().token);"] } }],
+      "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"username\": \"member\",\n  \"password\": \"DemoPass123!\"\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUsers}}/api/auth/login" }
+    },
+    {
+      "name": "4. USER no puede administrar cuentas (403)",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('USER gets 403', () => pm.response.to.have.status(403));"] } }],
+      "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{userToken}}" }], "url": "{{baseUsers}}/api/users" }
+    },
+    {
+      "name": "5. Admin lista usuarios",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Admin lista usuarios', () => pm.response.to.have.status(200));", "pm.expect(pm.response.json().length).to.be.at.least(3);"] } }],
+      "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }], "url": "{{baseUsers}}/api/users" }
+    },
+    {
+      "name": "6. Listar categorías",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Categorías 200', () => pm.response.to.have.status(200));", "pm.expect(pm.response.json().length).to.be.at.least(5);"] } }],
+      "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{userToken}}" }], "url": "{{baseForum}}/api/categories" }
+    },
+    {
+      "name": "7. USER no puede crear categoría (403)",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('USER obtiene 403 al crear categoría', () => pm.response.to.have.status(403));"] } }],
+      "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{userToken}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\"name\":\"Temporal\"}", "options": { "raw": { "language": "json" } } }, "url": "{{baseForum}}/api/categories" }
+    },
+    {
+      "name": "8. Buscar temas",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Búsqueda 200', () => pm.response.to.have.status(200));", "pm.expect(pm.response.json().length).to.be.at.least(1);"] } }],
+      "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{userToken}}" }], "url": "{{baseForum}}/api/topics?search=Oracle" }
+    },
+    {
+      "name": "9. Leer temas",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Temas 200', () => pm.response.to.have.status(200));", "pm.expect(pm.response.json().length).to.be.at.least(3);"] } }],
+      "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{userToken}}" }], "url": "{{baseForum}}/api/topics" }
+    },
+    {
+      "name": "10. Publicar y leer comentario",
+      "item": [
+        {
+          "name": "Publicar comentario",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Comentario creado', () => pm.response.to.have.status(201));"] } }],
+          "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{userToken}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\"body\":\"Comentario de demostración desde Postman\"}", "options": { "raw": { "language": "json" } } }, "url": "{{baseForum}}/api/topics/{{topicId}}/comments" }
+        },
+        {
+          "name": "Leer comentarios",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Comentarios 200', () => pm.response.to.have.status(200));", "pm.expect(pm.response.json().length).to.be.at.least(1);"] } }],
+          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{userToken}}" }], "url": "{{baseForum}}/api/topics/{{topicId}}/comments" }
+        }
+      ]
+    }
+  ]
+}

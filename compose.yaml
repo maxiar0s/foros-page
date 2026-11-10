@@ -1,0 +1,69 @@
+services:
+  oracle:
+    image: gvenzl/oracle-free:23-slim-faststart
+    environment:
+      ORACLE_PASSWORD: ${ORACLE_SYSTEM_PASSWORD:-LocalOnly-ChangeMe-123!}
+      APP_USER: ${ORACLE_APP_USER:-FORUM_APP}
+      APP_USER_PASSWORD: ${ORACLE_APP_PASSWORD:-LocalOnly-ChangeMe-456!}
+    ports:
+      - "${ORACLE_PORT:-1521}:1521"
+    volumes:
+      - oracle-data:/opt/oracle/oradata
+      - ./database/init:/container-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "/bin/sh", "-c", "healthcheck.sh"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
+
+  users-service:
+    build:
+      context: ./users-service
+    environment:
+      SERVER_PORT: 8081
+      ORACLE_JDBC_URL: jdbc:oracle:thin:@//oracle:1521/FREEPDB1
+      ORACLE_USERNAME: ${ORACLE_APP_USER:-FORUM_APP}
+      ORACLE_PASSWORD: ${ORACLE_APP_PASSWORD:-LocalOnly-ChangeMe-456!}
+      DDL_AUTO: validate
+      JWT_SECRET: ${JWT_SECRET:-bG9jYWwtZGVtby1qd3Qtc2VjcmV0LW9ubHktMzItYnl0ZXM=}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-PT1H}
+    ports:
+      - "${USERS_PORT:-8081}:8081"
+    depends_on:
+      oracle:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/127.0.0.1/8081'"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 45s
+
+  forum-service:
+    build:
+      context: ./forum-service
+    environment:
+      SERVER_PORT: 8082
+      ORACLE_JDBC_URL: jdbc:oracle:thin:@//oracle:1521/FREEPDB1
+      ORACLE_USERNAME: ${ORACLE_APP_USER:-FORUM_APP}
+      ORACLE_PASSWORD: ${ORACLE_APP_PASSWORD:-LocalOnly-ChangeMe-456!}
+      DDL_AUTO: validate
+      USERS_SERVICE_URL: http://users-service:8081
+    ports:
+      - "${FORUM_PORT:-8082}:8082"
+    depends_on:
+      oracle:
+        condition: service_healthy
+      users-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/127.0.0.1/8082'"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 45s
+
+volumes:
+  oracle-data:
+    name: foro-oracle-data
