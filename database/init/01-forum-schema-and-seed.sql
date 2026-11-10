@@ -1,4 +1,7 @@
--- Runs once on first Oracle volume initialization as the configured APP_USER.
+-- Explicit deliverable, executed by database/container-init/00-forum-init.sh
+-- as the configured APP_USER connected to FREEPDB1 on a fresh volume only.
+WHENEVER OSERROR EXIT FAILURE
+WHENEVER SQLERROR EXIT SQL.SQLCODE
 -- Demo credentials (local only): admin / DemoPass123! and member / DemoPass123!
 -- The values below are BCrypt hashes; plaintext passwords are never stored.
 

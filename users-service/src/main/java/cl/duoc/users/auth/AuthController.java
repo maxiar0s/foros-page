@@ -31,7 +31,8 @@ public class AuthController {
     public TokenResponse login(@Valid @RequestBody LoginRequest request) {
         AppUser user = users.findByUsername(request.username())
                 .filter(candidate -> passwordEncoder.matches(request.password(), candidate.getPasswordHash()))
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid username or password"));
+                .orElseThrow(
+                        () -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid username or password"));
         return new TokenResponse(jwtService.issue(user), "Bearer");
     }
 
@@ -40,7 +41,12 @@ public class AuthController {
         return new UserIdentity(user.getId(), user.getUsername(), user.getRole().name());
     }
 
-    public record LoginRequest(@NotBlank String username, @NotBlank String password) { }
-    public record TokenResponse(String token, String tokenType) { }
-    public record UserIdentity(Long id, String username, String role) { }
+    public record LoginRequest(@NotBlank String username, @NotBlank String password) {
+    }
+
+    public record TokenResponse(String token, String tokenType) {
+    }
+
+    public record UserIdentity(Long id, String username, String role) {
+    }
 }

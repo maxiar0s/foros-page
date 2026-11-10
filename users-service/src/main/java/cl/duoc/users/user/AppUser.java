@@ -29,7 +29,8 @@ public class AppUser {
     @Column(nullable = false, length = 10)
     private Role role;
 
-    protected AppUser() { }
+    protected AppUser() {
+    }
 
     public AppUser(String username, String email, String passwordHash, Role role) {
         this.username = username;
@@ -38,11 +39,25 @@ public class AppUser {
         this.role = role;
     }
 
-    public Long getId() { return id; }
-    public String getUsername() { return username; }
-    public String getEmail() { return email; }
-    public String getPasswordHash() { return passwordHash; }
-    public Role getRole() { return role; }
+    public Long getId() {
+        return id;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public String getPasswordHash() {
+        return passwordHash;
+    }
+
+    public Role getRole() {
+        return role;
+    }
 
     public void updateProfile(String username, String email, Role role) {
         this.username = username;

@@ -32,10 +32,14 @@ public class UserController {
     }
 
     @GetMapping
-    public List<UserResponse> list() { return users.findAll().stream().map(UserResponse::from).toList(); }
+    public List<UserResponse> list() {
+        return users.findAll().stream().map(UserResponse::from).toList();
+    }
 
     @GetMapping("/{id}")
-    public UserResponse get(@PathVariable("id") Long id) { return UserResponse.from(find(id)); }
+    public UserResponse get(@PathVariable("id") Long id) {
+        return UserResponse.from(find(id));
+    }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -62,19 +66,26 @@ public class UserController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable("id") Long id) { users.delete(find(id)); }
+    public void delete(@PathVariable("id") Long id) {
+        users.delete(find(id));
+    }
 
     private AppUser find(Long id) {
-        return users.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        return users.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
     }
 
     public record CreateUserRequest(@NotBlank @Size(max = 50) String username,
-                                    @NotBlank @Email @Size(max = 254) String email,
-                                    @NotBlank @Size(min = 12, max = 72) String password,
-                                    @NotNull Role role) { }
+            @NotBlank @Email @Size(max = 254) String email,
+            @NotBlank @Size(min = 12, max = 72) String password,
+            @NotNull Role role) {
+    }
+
     public record UpdateUserRequest(@NotBlank @Size(max = 50) String username,
-                                    @NotBlank @Email @Size(max = 254) String email,
-                                    @NotNull Role role) { }
+            @NotBlank @Email @Size(max = 254) String email,
+            @NotNull Role role) {
+    }
+
     public record UserResponse(Long id, String username, String email, Role role) {
         static UserResponse from(AppUser user) {
             return new UserResponse(user.getId(), user.getUsername(), user.getEmail(), user.getRole());
