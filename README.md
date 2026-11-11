@@ -38,7 +38,7 @@ No conectar a, inspeccionar, reparar, reiniciar ni borrar un volumen como parte 
 
 ## Validar API con Postman
 
-Importa `postman/Foro API.postman_collection.json` en Postman y ejecuta la colección en orden. La colección guarda tokens de admin/usuario y verifica login/identidad, prohibición de gestión para USER, gestión admin, categorías, búsqueda/lectura de temas y publicación/lectura de comentarios. `baseUsers` y `baseForum` están definidos como variables de colección para permitir cambiar puertos.
+Importa `postman/Foro API.postman_collection.json` en Postman y ejecuta las solicitudes. Las direcciones, puertos, credenciales de demostración e ID de tema están escritos directamente en cada solicitud: no hace falta configurar un entorno ni variables de Postman. Cada solicitud protegida inicia sesión automáticamente antes de enviarse para obtener un token vigente. La colección verifica login/identidad, prohibición de gestión para USER, gestión admin, categorías, búsqueda/lectura de temas y publicación/lectura de comentarios. Si cambias los puertos predeterminados, actualiza las direcciones en las solicitudes y sus scripts de autenticación.
 
 Rutas principales: `POST /api/auth/login`, `GET /api/auth/me`, administración `/api/users` (ADMIN); `/api/categories` (lectura autenticada, mutaciones ADMIN); `/api/topics` (búsqueda con `?search=`, CRUD autenticado con reglas de autor/ADMIN); comentarios en `/api/topics/{id}/comments`. El servicio de foro valida el token preguntando al servicio de usuarios; las llamadas al foro deben conservar el bearer token.
 
