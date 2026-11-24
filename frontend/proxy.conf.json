@@ -1,0 +1,4 @@
+{
+  "/users-api": {"target": "http://localhost:8081", "secure": false, "changeOrigin": true, "pathRewrite": {"^/users-api": "/api"}},
+  "/forum-api": {"target": "http://localhost:8082", "secure": false, "changeOrigin": true, "pathRewrite": {"^/forum-api": "/api"}}
+}

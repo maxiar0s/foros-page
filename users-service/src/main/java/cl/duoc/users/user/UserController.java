@@ -9,6 +9,7 @@ import java.util.List;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,6 +30,25 @@ public class UserController {
     public UserController(UserRepository users, PasswordEncoder passwordEncoder) {
         this.users = users;
         this.passwordEncoder = passwordEncoder;
+    }
+
+    @GetMapping("/me")
+    public UserResponse ownProfile(@AuthenticationPrincipal AppUser user) {
+        return UserResponse.from(user);
+    }
+
+    @PutMapping("/me")
+    public UserResponse updateOwnProfile(@AuthenticationPrincipal AppUser user,
+            @Valid @RequestBody OwnProfileRequest request) {
+        if (!user.getUsername().equals(request.username())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username cannot be changed");
+        }
+        user.updateProfile(user.getUsername(), request.email(), user.getRole());
+        try {
+            return UserResponse.from(users.saveAndFlush(user));
+        } catch (DataIntegrityViolationException ex) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Username or email already exists");
+        }
     }
 
     @GetMapping
@@ -73,6 +93,10 @@ public class UserController {
     private AppUser find(Long id) {
         return users.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+    }
+
+    public record OwnProfileRequest(@NotBlank @Size(max = 50) String username,
+            @NotBlank @Email @Size(max = 254) String email) {
     }
 
     public record CreateUserRequest(@NotBlank @Size(max = 50) String username,

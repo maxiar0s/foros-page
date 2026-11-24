@@ -1,0 +1,6 @@
+server:
+  port: ${SERVER_PORT:8083}
+users-service:
+  url: ${USERS_SERVICE_URL:http://users-service:8081}
+forum-service:
+  url: ${FORUM_SERVICE_URL:http://forum-service:8082}

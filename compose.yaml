@@ -29,6 +29,14 @@ services:
       DDL_AUTO: validate
       JWT_SECRET: ${JWT_SECRET:-bG9jYWwtZGVtby1qd3Qtc2VjcmV0LW9ubHktMzItYnl0ZXM=}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-PT1H}
+      MAIL_HOST: ${MAIL_HOST:-localhost}
+      MAIL_PORT: ${MAIL_PORT:-25}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_SMTP_AUTH: ${MAIL_SMTP_AUTH:-false}
+      MAIL_SMTP_STARTTLS: ${MAIL_SMTP_STARTTLS:-false}
+      MAIL_FROM: ${MAIL_FROM:-noreply@example.test}
+      RECOVERY_FRONTEND_URL: ${RECOVERY_FRONTEND_URL:-http://localhost:4200}
     ports:
       - "${USERS_PORT:-8081}:8081"
     depends_on:
@@ -64,6 +72,38 @@ services:
       timeout: 5s
       retries: 30
       start_period: 45s
+
+  moderation-service:
+    build:
+      context: ./moderation-service
+    environment:
+      SERVER_PORT: 8083
+      USERS_SERVICE_URL: http://users-service:8081
+      FORUM_SERVICE_URL: http://forum-service:8082
+    depends_on:
+      users-service:
+        condition: service_healthy
+      forum-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/127.0.0.1/8083'"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 45s
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "${FRONTEND_PORT:-4200}:80"
+    depends_on:
+      users-service:
+        condition: service_healthy
+      forum-service:
+        condition: service_healthy
+      moderation-service:
+        condition: service_healthy
 
 volumes:
   oracle-data:

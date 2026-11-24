@@ -59,6 +59,10 @@ public class AppUser {
         return role;
     }
 
+    public void changePassword(String passwordHash) {
+        this.passwordHash = passwordHash;
+    }
+
     public void updateProfile(String username, String email, Role role) {
         this.username = username;
         this.email = email;

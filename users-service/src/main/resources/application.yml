@@ -13,7 +13,21 @@ spring:
     properties:
       hibernate:
         format_sql: true
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:25}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: ${MAIL_SMTP_AUTH:false}
+          starttls:
+            enable: ${MAIL_SMTP_STARTTLS:false}
 app:
+  recovery:
+    from: ${MAIL_FROM:noreply@example.test}
+    frontend-url: ${RECOVERY_FRONTEND_URL:http://localhost:4200}
   jwt:
     secret: ${JWT_SECRET}
     expiration: ${JWT_EXPIRATION:PT1H}

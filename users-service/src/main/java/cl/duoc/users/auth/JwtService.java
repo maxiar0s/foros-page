@@ -2,6 +2,7 @@ package cl.duoc.users.auth;
 
 import cl.duoc.users.user.AppUser;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import java.time.Duration;
@@ -36,12 +37,20 @@ public class JwtService {
 
     public String issue(AppUser user) {
         Instant now = Instant.now();
-        return Jwts.builder().subject(user.getUsername()).issuedAt(java.util.Date.from(now))
-                .expiration(java.util.Date.from(now.plus(expiration))).signWith(key).compact();
+        return Jwts.builder().subject(user.getUsername()).claim("userId", user.getId())
+                .issuedAt(java.util.Date.from(now)).expiration(java.util.Date.from(now.plus(expiration)))
+                .signWith(key).compact();
     }
 
-    public String subject(String token) {
+    /**
+     * Reads the immutable identity claim. Legacy username-only tokens are rejected and require a new login.
+     */
+    public Long userId(String token) {
         Claims claims = Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
-        return claims.getSubject();
+        Long userId = claims.get("userId", Long.class);
+        if (userId == null || userId <= 0) {
+            throw new JwtException("Token does not contain a valid user ID");
+        }
+        return userId;
     }
 }

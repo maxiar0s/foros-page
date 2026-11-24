@@ -31,8 +31,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String authorization = request.getHeader("Authorization");
         if (authorization != null && authorization.startsWith("Bearer ")) {
             try {
-                String username = jwtService.subject(authorization.substring(7));
-                AppUser user = users.findByUsername(username).orElse(null);
+                Long userId = jwtService.userId(authorization.substring(7));
+                AppUser user = users.findById(userId).orElse(null);
                 if (user != null) {
                     var authentication = new UsernamePasswordAuthenticationToken(user, null,
                             List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name())));

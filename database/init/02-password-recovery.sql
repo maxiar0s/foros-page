@@ -1,0 +1,6 @@
+-- Intentionally contains no DDL.
+-- Fresh Oracle initialization runs database/init/01-forum-schema-and-seed.sql,
+-- which creates PASSWORD_RESET_TOKENS exactly once. This numbered file is safe
+-- if an initializer executes every *.sql file in this directory.
+-- For an existing installation, manually apply database/migrations/001-password-recovery.sql.
+-- That migration is additive and leaves all existing APP_USERS data untouched.
